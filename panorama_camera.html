@@ -86,13 +86,12 @@
         viewer.add( panorama );
         var loader;
         loader = new THREE.ColladaLoader();
-        loader.load( 'https://billxu0521.github.io/panolentest/asset/model/build/ResidentialBuildings_001.dae', function ( collada ) {
-        loader.load( 'https://billxu0521.github.io/panolentest/asset/model/build/ResidentialBuildings_002.dae', function ( collada ) {
+        loader.load( 'https://billxu0521.github.io/panolentest/asset/model/earth/Globe.dae', function ( collada ) {
 
         dae = collada.scene;
 
         dae.scale.multiplyScalar( 15 );
-        dae.position.set( -60, -20, 370 );
+        dae.position.set( 0, -400, 0 );
         dae.rotation.set( -Math.PI/2, 0, -1.9 );
 
         dae.traverse( child => {
@@ -110,7 +109,29 @@
         panorama.add( dae );
 
         } );
-        
+
+        loader.load( 'https://billxu0521.github.io/panolentest/asset/model/build/ResidentialBuildings_002.dae', function ( collada ) {
+          dae = collada.scene;
+
+          dae.scale.multiplyScalar( 15 );
+          dae.position.set( 400, -400, 0 );
+          dae.rotation.set( -Math.PI/2, 0, -1.9 );
+
+          dae.traverse( child => {
+
+            if ( child.material instanceof THREE.Material ) {
+              const map = child.material.map;
+              child.material = new THREE.MeshPhysicalMaterial({map, reflectivity: 0, metalness: 0});
+            }
+
+          } );
+
+          // Get chair model
+          
+
+          panorama.add( dae );
+
+          } );
 
       };
 
