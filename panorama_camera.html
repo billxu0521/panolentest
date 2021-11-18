@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width, shrink-to-fit=no">
+    <title>Panolens.js panorama camera panorama</title>
+    <style>
+      html, body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background-color: #000;
+      }
+    </style>
+  </head>
+
+  <body>
+    
+    <script src="asset/js/three/three.min.js"></script>
+    <script src="asset/js/panolens/panolens.min.js"></script>
+    <script src="asset/js/three/loaders/ColladaLoader.js"></script>
+
+
+    <script>
+      const panorama = new PANOLENS.BasicPanorama();
+      const viewer = new PANOLENS.Viewer();
+      
+      const getItemContext = ( item ) => {
+        console.log(item)
+      }
+
+      const onListReady = ( list ) => {
+        
+        const length = list.length;
+        const radius = panorama.edgeLength / 2;
+
+        list.map( ( item, index ) => {
+          //imageitem = fetch( item['@id'] ).then(getItemContext).catch( console.error );
+          imageurl = item.thumbnail_display_urls.large;          
+          //coeator = item['dcterms:creator'][0]['@value']
+          const infospot = new PANOLENS.Infospot( 1000, imageurl);
+          level = -2000
+          const theta = Math.random() * 2 * Math.PI;
+          const phi = Math.random() * Math.PI;
+          const angle = index / length * 5 * Math.PI;
+          level = level + parseInt(index / 10) * 1500
+          console.log(level)
+          r = 100;
+          const randomPos = new THREE.Vector3(
+            radius * Math.sin( phi ) * Math.cos( theta ),
+            radius * Math.sin( phi ) * Math.sin( theta ),
+            radius * Math.cos( phi )
+          );
+          const alignPos = new THREE.Vector3(
+            radius * Math.cos( angle ) ,
+            level ,
+            radius * Math.sin( angle ) 
+          );
+          console.log(radius * Math.cos( angle ))
+          infospot.addHoverText( "說明" );
+          infospot.position.copy( randomPos );
+
+          infospot.align = () => {
+
+            new TWEEN.Tween( infospot.position )
+            .to( alignPos, 1000 )
+            .easing( TWEEN.Easing.Exponential.Out )
+            .start();
+
+          };
+
+          infospot.randomize = () => {
+
+            new TWEEN.Tween( infospot.position )
+            .to( randomPos, 1000 )
+            .easing( TWEEN.Easing.Exponential.Out )
+            .start();
+
+          };
+          
+          panorama.add( infospot );
+
+        } );
+
+        viewer.add( panorama );
+        var loader;
+        loader = new THREE.ColladaLoader();
+        loader.load( 'https://pchen66.github.io/Panolens/examples/asset/model/build/Residential Buildings 001.dae', function ( collada ) {
+
+        dae = collada.scene;
+
+        dae.scale.multiplyScalar( 15 );
+        dae.position.set( -60, -20, 370 );
+        dae.rotation.set( -Math.PI/2, 0, -1.9 );
+
+        dae.traverse( child => {
+
+          if ( child.material instanceof THREE.Material ) {
+            const map = child.material.map;
+            child.material = new THREE.MeshPhysicalMaterial({map, reflectivity: 0, metalness: 0});
+          }
+
+        } );
+
+        // Get chair model
+        
+
+        panorama.add( dae );
+
+        } );
+        
+
+      };
+
+      
+
+      const createWidget = () => {
+
+        const onImage = 'url("https://i.imgur.com/k5Mp1Q9.png")';
+        const offImage = 'url("https://i.imgur.com/laX1DBL.png")';
+
+        const widget = { 
+          style: { backgroundImage: onImage },
+          onTap: () => {
+            const enabledGrid = item.style.backgroundImage == onImage;
+            panorama.children.forEach( infospot => infospot[ enabledGrid ? 'align' : 'randomize' ]() );
+            item.style.backgroundImage = enabledGrid ? offImage : onImage;
+          }
+        };
+
+        const item = viewer.appendControlItem( widget );
+
+      };
+
+      const getRandomImageList = ( url ) => {
+
+        return fetch( url )
+          .then( response => response.json() )
+          .then( onListReady )
+          .then( createWidget )
+          .catch( console.error );
+
+      };
+
+      
+        getRandomImageList( 'http://140.119.127.55/api/items?item_set_id=15082' );
+      
+        addPointLights();
+        //addInfospots();
+
+        function addPointLights () {
+
+          pointlight = new THREE.PointLight( 0xAAD6FF, 0.8 );
+          pointlight.position.set( 0, 0, 0 );
+          panorama.add( pointlight );
+
+          pointlight = pointlight.clone();
+          pointlight.position.set( 65, 0, -45 );
+          panorama.add( pointlight );
+
+        }
+    </script>
+
+  </body>
+
+</html>
