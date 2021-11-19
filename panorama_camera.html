@@ -4,6 +4,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width, shrink-to-fit=no">
     <title>Panolens.js panorama camera panorama</title>
+    <div id="progress"></div>
+    <div id="dialog">
+      <div id="typed">Hello</div>
+    </div>
+
+
     <style>
       html, body {
         margin: 0;
@@ -11,6 +17,34 @@
         height: 100%;
         overflow: hidden;
         background-color: #000;
+      }
+
+      #typed {
+        color: #fff;
+        text-shadow: 0px 0px 2px #000;
+        font-size: 24pt;
+      }
+
+      #dialog {
+        position: absolute;
+        top: 50%;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        box-sizing: border-box;
+        pointer-events: none;
+      }
+
+      #progress {
+        width: 0;
+        height: 5px;
+        position: fixed;
+        top: 0;
+        background: #fff;
+        -webkit-transition: opacity 0.5s ease;
+        transition: opacity 0.5s ease;
       }
     </style>
   </head>
@@ -20,15 +54,80 @@
     <script src="asset/js/three/three.min.js"></script>
     <script src="asset/js/panolens/panolens.min.js"></script>
     <script src="asset/js/three/loaders/ColladaLoader.js"></script>
-
+    <script src="asset/js/typed.min.js"></script>
 
     <script>
+      var type;
+      var tweeningDelay = 300, typeStartDelay = 1000, typeSpeed = 50;
+
       const panorama = new PANOLENS.BasicPanorama();
-      const viewer = new PANOLENS.Viewer();
       
+
+      panorama.addEventListener( 'load', onLoad );
+      panorama.addEventListener( 'enter', onEnter );
+      var progressElement = document.querySelector( '#progress' );
+
+      function onEnter ( event ) {
+
+        progressElement.style.width = 0;
+        progressElement.classList.remove( 'finish' );
+
+        }
+
+
+        function onWelcomeComplete () {
+          type( paragraphs.meter, function(){ viewer.OrbitControls.enabled = true; });
+        }
+      //const viewer = new PANOLENS.Viewer();
+      var paragraphs = {
+        welcome: [ 'Panolens Presents', 'A Journey to a <strong>Train</strong>', 'Here we go' ],
+        meter: [ 'One of the common meter that you can see on a train', 'it is not specially eye-catching but it just can get your attention', 'it indicates how fast the train is currently going', 'Let us continue' ],
+        valve: [ 'A Valve', 'solid looking and quite decent color', 'here shows the evidence that time would leaves marks on everything', 'same thing applies to our face...' ],
+        seat: [ 'Alright. Here we have a seat. The green pad looks quite comfortable', 'when you are on a train', 'OK. Move on to next one' ],
+        box: [ 'There is a box over there', 'probably some fuse or electronic devices', 'Hmmmm............', 'Anyway', 'Let\'s keep moving' ],
+        ending: [ 'This is our last stop', 'Please continue your journey with this wonder train...' ]
+      };
+
+      // Patch for typed.js of cutting back-to-back words
+      for ( var section in paragraphs ) {
+        if ( paragraphs.hasOwnProperty( section ) ) {
+
+          paragraphs[ section ].unshift( '' );
+          paragraphs[ section ].push( '' );
+
+        }
+
+      }
+
+      function onLoad () {
+        type( paragraphs.welcome, onWelcomeComplete, 2000 );
+      }
+
+
+      const viewer = new PANOLENS.Viewer( { enableReticle: true, renderer: new THREE.WebGLRenderer({antialias: true}) } );
+
+      viewer.reticle.setColor( 0x77ffff );
+
       const getItemContext = ( item ) => {
         console.log(item)
       }
+
+      function type ( stringArray, onComplete, startDelay ) {
+
+        onComplete = onComplete || function(){};
+        startDelay = startDelay >= 0 ? startDelay : typeStartDelay;
+
+        typed = new Typed( "#typed", {
+
+          strings: stringArray,
+          typeSpeed: typeSpeed,
+          showCursor: false,
+          startDelay: startDelay,
+          onComplete: onComplete
+          
+        });
+
+        }
 
       const onListReady = ( list ) => {
         
@@ -45,7 +144,6 @@
           const phi = Math.random() * Math.PI;
           const angle = index / length * 5 * Math.PI;
           level = level + parseInt(index / 10) * 1500
-          console.log(level)
           r = 100;
           const randomPos = new THREE.Vector3(
             radius * Math.sin( phi ) * Math.cos( theta ),
@@ -57,7 +155,6 @@
             level ,
             radius * Math.sin( angle ) 
           );
-          console.log(radius * Math.cos( angle ))
           infospot.addHoverText( "說明" );
           infospot.position.copy( randomPos );
 
@@ -79,6 +176,29 @@
 
           };
           
+            // Zodiac event listeners
+            infospot.addEventListener( 'hoverenter', function () {
+            // Dynamic set reticle dwelling time
+            this.name === 'Taurus' && setDwellTime( 3000 ); 
+            // Fade in description
+            //this.desc.tweens['fadeIn'].start();
+            } );
+            infospot.addEventListener( 'hoverleave', function () {
+              // Reset reticle dwelling time
+              this.name === 'Taurus' && setDwellTime( 1500 ); 
+              // Fade out description
+              //this.desc.tweens['fadeOut'].start();
+            } );
+            infospot.addEventListener( 'click', function () {
+              type( ["安安 沒囉"], function(){ viewer.OrbitControls.enabled = true; } );
+              this.scaleDownAnimation.start();
+
+            
+          } );
+
+
+
+
           panorama.add( infospot );
 
         } );
@@ -93,12 +213,14 @@
         dae.scale.multiplyScalar( 15 );
         dae.position.set( 0, -400, 0 );
         dae.rotation.set( -Math.PI/2, 0, -1.9 );
+        var textureLoader = new THREE.TextureLoader();
+        var texture = textureLoader.load('https://billxu0521.github.io/panolentest/asset/model/earth/Texture/Low res/Albedo-diffuse_Low-end.jpg');
+
 
         dae.traverse( child => {
-
           if ( child.material instanceof THREE.Material ) {
             const map = child.material.map;
-            child.material = new THREE.MeshPhysicalMaterial({map, reflectivity: 0, metalness: 0});
+            child.material = new THREE.MeshPhysicalMaterial({map:texture});
           }
 
         } );
@@ -108,6 +230,7 @@
 
         panorama.add( dae );
 
+
         } );
 
         loader.load( 'https://billxu0521.github.io/panolentest/asset/model/build/ResidentialBuildings_002.dae', function ( collada ) {
@@ -116,12 +239,15 @@
           dae.scale.multiplyScalar( 15 );
           dae.position.set( 400, -400, 0 );
           dae.rotation.set( -Math.PI/2, 0, -1.9 );
+          var textureLoader = new THREE.TextureLoader();
+          var texture = textureLoader.load('https://billxu0521.github.io/panolentest/asset/model/earth/Texture/Low res/Albedo-diffuse_Low-end.jpg');
 
           dae.traverse( child => {
 
             if ( child.material instanceof THREE.Material ) {
               const map = child.material.map;
               child.material = new THREE.MeshPhysicalMaterial({map, reflectivity: 0, metalness: 0});
+              //child.material = new THREE.MeshPhysicalMaterial({map:texture});
             }
 
           } );

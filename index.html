@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width, shrink-to-fit=no">
+    <title>環景展廳</title>
+    
+    
+    </div>
+
+    <script src="asset/js/three/three.min.js"></script>
+    <script src="asset/js/panolens/panolens.min.js"></script>
+    <script src="asset/js/three/loaders/ColladaLoader.js"></script>
+    <script src="asset/js/typed.min.js"></script>
+    <style>
+      html, body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background-color: #000;
+      }
+
+      #typed {
+        color: #fff;
+        text-shadow: 0px 0px 2px #000;
+        font-size: 24pt;
+      }
+
+      #dialog {
+        position: absolute;
+        top: 50%;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        box-sizing: border-box;
+        pointer-events: none;
+      }
+
+      #progress {
+        width: 0;
+        height: 5px;
+        position: fixed;
+        top: 0;
+        background: #fff;
+        -webkit-transition: opacity 0.5s ease;
+        transition: opacity 0.5s ease;
+      }
+    </style>
+  </head>
+
+  <body>
+    <script>
+      const dataUrl = "http://omekas.ccstw.nccu.edu.tw/api/items?item_set_id=10520";
+      const fontUrl = "https://billxu0521.github.io/panolentest/asset/fonts/helvetiker_regular.typeface.json"
+      const getRandomImageList = ( url ) => {
+      //開始取圖片資料
+      return fetch( url )
+        .then( response => response.json() )
+        .then( onListReady )
+        .then( createWidget )
+        .catch( console.error );
+        
+      };
+
+      //打字效果
+      function type ( stringArray  ) {
+        typed = new Typed( "#typed", {
+          strings: stringArray,
+          typeSpeed: typeSpeed,
+          showCursor: false
+        });
+
+      }
+
+
+      function makeMultiLine ( text = '', count = 40 ) {
+
+        let lineCharacterLimit = 0;
+
+        return text.split(' ').map( word => {
+          lineCharacterLimit += word.length;     
+          if ( lineCharacterLimit > count ) {
+            word += '\n';           
+            lineCharacterLimit = 0;
+          }
+          return word;
+        }).join(' ').replace( /\n /g, '\n' );
+
+      }
+
+      function createTextShape ( message, size = 10, count ) {
+
+        message = makeMultiLine( message, count );
+
+        var shapes = font.generateShapes( message, size );
+        var geometry = new THREE.ShapeGeometry( shapes );
+        var matLite = new THREE.MeshBasicMaterial( {
+          color: 0xffffff,
+          transparent: true,
+          opacity: 1,
+          side: THREE.DoubleSide
+        } );
+
+        geometry.computeBoundingBox();
+
+        var xMid = - 0.5 * ( geometry.boundingBox.max.x - geometry.boundingBox.min.x );
+        geometry.translate( xMid, 0, 0 );
+
+        return new THREE.Mesh( geometry, matLite );
+
+      }
+
+
+      function createTitleAndDesc ( pos, index ,description) {
+
+        var titleSprite, descSprite, name, description;
+        console.log("testtt")
+        // Zodiac description
+        descSprite = createTextShape( description, 4 );
+        descSprite.material.opacity = 0;
+        descSprite.position.y = -42;
+        descSprite.scale.multiplyScalar( 0.5 );
+        descSprite.tweens = {
+          fadeOut: new TWEEN.Tween( descSprite.material ).to( { opacity: 0 }, 500 ),
+          fadeIn: new TWEEN.Tween( descSprite.material ).to( { opacity: 1 }, 500 )
+        };
+
+        titleSprite.add( descSprite );
+        titleSprite.desc = descSprite;
+
+        return titleSprite;
+
+      }
+
+      const onListReady = ( list ) => {
+        
+        const length = list.length;
+        const radius = panorama.edgeLength / 2;
+
+        list.map( ( item, index ) => {
+          //imageitem = fetch( item['@id'] ).then(getItemContext).catch( console.error );
+          imageurl = item.thumbnail_display_urls.large;          
+          //coeator = item['dcterms:creator'][0]['@value']
+          var descriptionlist = item["dcterms:description"];
+          var description = descriptionlist.map(function(e,i,arr){return e["@value"];});
+          var tile = item["dcterms:title"][0]["@value"];
+
+          const infospot = new PANOLENS.Infospot( 1000, imageurl);
+          infospot.addHoverText( tile );
+          level = -2000
+          const theta = Math.random() * 2 * Math.PI;
+          const phi = Math.random() * Math.PI;
+          const angle = index / length * 5 * Math.PI;
+          level = level + parseInt(index / 10) * 1500
+          r = 100;
+          const randomPos = new THREE.Vector3(
+            radius * Math.sin( phi ) * Math.cos( theta ),
+            radius * Math.sin( phi ) * Math.sin( theta ),
+            radius * Math.cos( phi )
+          );
+          const alignPos = new THREE.Vector3(
+            radius * Math.cos( angle ) ,
+            level ,
+            radius * Math.sin( angle ) 
+          );
+          infospot.position.copy( randomPos );
+          title = createTitleAndDesc( randomPos,description);
+          //依序排列
+          infospot.align = () => {
+            new TWEEN.Tween( infospot.position )
+            .to( alignPos, 1000 )
+            .easing( TWEEN.Easing.Exponential.Out )
+            .start();
+            console.log("align")
+            
+          };
+          //隨機排列
+          infospot.randomize = () => {
+            new TWEEN.Tween( infospot.position )
+            .to( randomPos, 1000 )
+            .easing( TWEEN.Easing.Exponential.Out )
+            .start();
+            console.log("randomize")
+          };
+
+          // Zodiac event listeners
+          infospot.addEventListener( 'hoverenter', function () {
+            //type("字串");
+            console.log(tile)
+          
+          } );
+          infospot.addEventListener( 'hoverleave', function () {
+            //type("字串");
+            // Reset reticle dwelling time
+            console.log(tile)
+          } );
+
+          
+          panorama.add( infospot );
+
+        });
+        viewer.add( panorama );
+      };
+
+      const createWidget = () => {
+
+      const onImage = 'url("https://i.imgur.com/k5Mp1Q9.png")';
+      const offImage = 'url("https://i.imgur.com/laX1DBL.png")';
+
+      const widget = { 
+        style: { backgroundImage: onImage },
+        onTap: () => {
+          const enabledGrid = item.style.backgroundImage == onImage;
+          panorama.children.forEach( infospot => infospot[ enabledGrid ? 'align' : 'randomize' ]() );
+          item.style.backgroundImage = enabledGrid ? offImage : onImage;
+        }
+      };
+
+      const item = viewer.appendControlItem( widget );
+
+      };
+
+      //建立環景場景
+      const panorama = new PANOLENS.ImagePanorama( 'https://pchen66.github.io/Panolens/examples/asset/textures/equirectangular/field.jpg' );
+      const viewer = new PANOLENS.Viewer( { enableReticle: true, renderer: new THREE.WebGLRenderer({antialias: true}),output: 'console' } );
+
+      viewer.reticle.setColor( 0x77ffff );
+      viewer.add( panorama );
+
+      
+      var loader = new THREE.FontLoader();
+      loader.load( fontUrl, onFontLoaded );
+      function onFontLoaded ( _font ) {
+        //啟動各種功能
+        getRandomImageList( dataUrl );
+      
+      }
+
+
+
+    </script>
+    
+
+
+    
+  </body>
+
+</html>
