@@ -4,7 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width, shrink-to-fit=no">
     <title>環景展廳</title>
-    
+    <div id="dialog">
+      <div id="typed">Hello</div>
+    </div>
     
     </div>
 
@@ -24,12 +26,12 @@
       #typed {
         color: #fff;
         text-shadow: 0px 0px 2px #000;
-        font-size: 24pt;
+        font-size: 16pt;
       }
 
       #dialog {
         position: absolute;
-        top: 50%;
+        top: 5%;
         width: 100%;
         display: flex;
         justify-content: center;
@@ -54,9 +56,9 @@
   <body>
     <script>
       const dataUrl = "http://omekas.ccstw.nccu.edu.tw/api/items?item_set_id=10520";
-      const fontUrl = "https://billxu0521.github.io/panolentest/asset/fonts/helvetiker_regular.typeface.json"
+      const fontUrl = "https://billxu0521.github.io/panolentest/asset/fonts/Noto_Sans_TC_Black_Regular.json"
       const getRandomImageList = ( url ) => {
-      //開始取圖片資料
+        //開始取圖片資料
       return fetch( url )
         .then( response => response.json() )
         .then( onListReady )
@@ -67,10 +69,15 @@
 
       //打字效果
       function type ( stringArray  ) {
+
+        var typeSpeed = 100;
         typed = new Typed( "#typed", {
           strings: stringArray,
+
           typeSpeed: typeSpeed,
-          showCursor: false
+          showCursor: false,
+          startDelay: 300,
+         
         });
 
       }
@@ -94,7 +101,7 @@
       function createTextShape ( message, size = 10, count ) {
 
         message = makeMultiLine( message, count );
-
+        console.log(font)
         var shapes = font.generateShapes( message, size );
         var geometry = new THREE.ShapeGeometry( shapes );
         var matLite = new THREE.MeshBasicMaterial( {
@@ -106,7 +113,7 @@
 
         geometry.computeBoundingBox();
 
-        var xMid = - 0.5 * ( geometry.boundingBox.max.x - geometry.boundingBox.min.x );
+        var xMid = - 0.1 * ( geometry.boundingBox.max.x - geometry.boundingBox.min.x );
         geometry.translate( xMid, 0, 0 );
 
         return new THREE.Mesh( geometry, matLite );
@@ -114,24 +121,20 @@
       }
 
 
-      function createTitleAndDesc ( pos, index ,description) {
-
-        var titleSprite, descSprite, name, description;
-        console.log("testtt")
-        // Zodiac description
+      function createTitleAndDesc ( angle ,description,radius) {
+        var descSprite;
+        //  description
         descSprite = createTextShape( description, 4 );
-        descSprite.material.opacity = 0;
-        descSprite.position.y = -42;
-        descSprite.scale.multiplyScalar( 0.5 );
-        descSprite.tweens = {
-          fadeOut: new TWEEN.Tween( descSprite.material ).to( { opacity: 0 }, 500 ),
-          fadeIn: new TWEEN.Tween( descSprite.material ).to( { opacity: 1 }, 500 )
-        };
-
-        titleSprite.add( descSprite );
-        titleSprite.desc = descSprite;
-
-        return titleSprite;
+        //descSprite.position.set( radius * Math.sin( -angle ), 0, radius * Math.cos( -angle ) );
+        descSprite.material.opacity = 1;
+        //descSprite.position.y += 45;
+        descSprite.rotation.y = Math.PI - angle;
+        //descSprite.position.set(pos["x"],pos["y"],pos["z"] );
+        //descSprite.rotation.y = 90;
+        //descSprite.position.y = -30;
+        descSprite.scale.multiplyScalar( 0.2 );
+        
+        return descSprite;
 
       }
 
@@ -144,17 +147,20 @@
           //imageitem = fetch( item['@id'] ).then(getItemContext).catch( console.error );
           imageurl = item.thumbnail_display_urls.large;          
           //coeator = item['dcterms:creator'][0]['@value']
-          var descriptionlist = item["dcterms:description"];
-          var description = descriptionlist.map(function(e,i,arr){return e["@value"];});
+          var descriptionlist = item["dcterms:description"].map(function(e,i,arr){return e["@value"];});
+          var description = descriptionlist.map(function(e,i,arr){return e+"<br>";});
+          
+          //var description = descriptionlist.map(function(e,i,arr){return e["@value"];});
+          description = description.toString();
           var tile = item["dcterms:title"][0]["@value"];
 
           const infospot = new PANOLENS.Infospot( 1000, imageurl);
           infospot.addHoverText( tile );
-          level = -2000
+          level = 0
           const theta = Math.random() * 2 * Math.PI;
           const phi = Math.random() * Math.PI;
           const angle = index / length * 5 * Math.PI;
-          level = level + parseInt(index / 10) * 1500
+          level = level + parseInt(index / 10) * 1500;
           r = 100;
           const randomPos = new THREE.Vector3(
             radius * Math.sin( phi ) * Math.cos( theta ),
@@ -166,8 +172,11 @@
             level ,
             radius * Math.sin( angle ) 
           );
-          infospot.position.copy( randomPos );
-          title = createTitleAndDesc( randomPos,description);
+          infospot.position.copy( alignPos );
+          
+          desc = createTitleAndDesc(angle,description,radius);
+          infospot.dec = desc;
+          console.log(infospot)
           //依序排列
           infospot.align = () => {
             new TWEEN.Tween( infospot.position )
@@ -185,20 +194,11 @@
             .start();
             console.log("randomize")
           };
-
-          // Zodiac event listeners
-          infospot.addEventListener( 'hoverenter', function () {
-            //type("字串");
-            console.log(tile)
           
+          infospot.addEventListener( 'click', function () {
+            //type(['',description]);
           } );
-          infospot.addEventListener( 'hoverleave', function () {
-            //type("字串");
-            // Reset reticle dwelling time
-            console.log(tile)
-          } );
-
-          
+          panorama.add( desc );
           panorama.add( infospot );
 
         });
@@ -224,7 +224,8 @@
       };
 
       //建立環景場景
-      const panorama = new PANOLENS.ImagePanorama( 'https://pchen66.github.io/Panolens/examples/asset/textures/equirectangular/field.jpg' );
+      const panorama = new PANOLENS.BasicPanorama();
+      //const panorama = new PANOLENS.ImagePanorama( 'https://pchen66.github.io/Panolens/examples/asset/textures/equirectangular/field.jpg' );
       const viewer = new PANOLENS.Viewer( { enableReticle: true, renderer: new THREE.WebGLRenderer({antialias: true}),output: 'console' } );
 
       viewer.reticle.setColor( 0x77ffff );
@@ -235,6 +236,8 @@
       loader.load( fontUrl, onFontLoaded );
       function onFontLoaded ( _font ) {
         //啟動各種功能
+        
+        font = _font;
         getRandomImageList( dataUrl );
       
       }
