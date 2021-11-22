@@ -56,7 +56,7 @@
   <body>
     <script>
       const dataUrl = "http://omekas.ccstw.nccu.edu.tw/api/items?item_set_id=10520";
-      const fontUrl = "https://billxu0521.github.io/panolentest/asset/fonts/Noto_Sans_TC_Black_Regular.json"
+      const fontUrl = "https://billxu0521.github.io/panolentest/asset/fonts/TW-MOE-Std-Kai_Regular.json"
       const getRandomImageList = ( url ) => {
         //開始取圖片資料
       return fetch( url )
@@ -121,18 +121,18 @@
       }
 
 
-      function createTitleAndDesc ( angle ,description,radius) {
+      function createTitleAndDesc ( angle ,description,radius,pos) {
         var descSprite;
         //  description
-        descSprite = createTextShape( description, 4 );
+        descSprite = createTextShape( description, 3 );
         //descSprite.position.set( radius * Math.sin( -angle ), 0, radius * Math.cos( -angle ) );
         descSprite.material.opacity = 1;
         //descSprite.position.y += 45;
-        descSprite.rotation.y = Math.PI - angle;
-        //descSprite.position.set(pos["x"],pos["y"],pos["z"] );
+        descSprite.rotation.y = 90;
+        descSprite.position.set(pos["x"],pos["y"],pos["z"] );
         //descSprite.rotation.y = 90;
-        //descSprite.position.y = -30;
-        descSprite.scale.multiplyScalar( 0.2 );
+        descSprite.position.z = -5;
+        descSprite.scale.multiplyScalar( 0.1 );
         
         return descSprite;
 
@@ -160,6 +160,7 @@
           const theta = Math.random() * 2 * Math.PI;
           const phi = Math.random() * Math.PI;
           const angle = index / length * 5 * Math.PI;
+          
           level = level + parseInt(index / 10) * 1500;
           r = 100;
           const randomPos = new THREE.Vector3(
@@ -174,7 +175,7 @@
           );
           infospot.position.copy( alignPos );
           
-          desc = createTitleAndDesc(angle,description,radius);
+          desc = createTitleAndDesc(angle,description,radius,alignPos);
           infospot.dec = desc;
           console.log(infospot)
           //依序排列
