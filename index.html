@@ -5,7 +5,10 @@
     <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width, shrink-to-fit=no">
     <title>環景展廳</title>
     <div id="dialog">
-      <div id="typed">Hello</div>
+      <div id="typed"></div>
+    </div>
+    <div id="panel">
+      測試區塊
     </div>
     
     </div>
@@ -29,14 +32,18 @@
         font-size: 16pt;
       }
 
+      #panel {
+        color: #fff;
+        text-shadow: 0px 0px 2px #000;
+        font-size: 16pt;
+      }
+
       #dialog {
         position: absolute;
         top: 5%;
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 20px;
+        width: 40%;
+        
+        padding: 10px;
         box-sizing: border-box;
         pointer-events: none;
       }
@@ -56,13 +63,13 @@
   <body>
     <script>
       const dataUrl = "http://omekas.ccstw.nccu.edu.tw/api/items?item_set_id=10520";
-      const fontUrl = "https://billxu0521.github.io/panolentest/asset/fonts/Microsoft_YaHei_Regular.json"
-      const getRandomImageList = ( url ) => {
+      const fontUrl = "https://billxu0521.github.io/panolentest/asset/fonts/helvetiker_regular.typeface.json"
+      const getImageList = ( url ) => {
         //開始取圖片資料
       return fetch( url )
         .then( response => response.json() )
         .then( onListReady )
-        .then( createWidget )
+        //.then( createWidget )
         .catch( console.error );
         
       };
@@ -70,18 +77,14 @@
       //打字效果
       function type ( stringArray  ) {
 
-        var typeSpeed = 100;
+        var typeSpeed = 50;
         typed = new Typed( "#typed", {
           strings: stringArray,
-
           typeSpeed: typeSpeed,
           showCursor: false,
-          startDelay: 300,
-         
+          backSpeed: 0,       
         });
-
       }
-
 
       function makeMultiLine ( text = '', count = 40 ) {
 
@@ -101,7 +104,6 @@
       function createTextShape ( message, size = 10, count ) {
 
         message = makeMultiLine( message, count );
-        console.log(font)
         var shapes = font.generateShapes( message, size );
         var geometry = new THREE.ShapeGeometry( shapes );
         var matLite = new THREE.MeshBasicMaterial( {
@@ -124,114 +126,141 @@
       function createTitleAndDesc ( angle ,description,radius,pos) {
         var descSprite;
         //  description
-        descSprite = createTextShape( description, 3 );
+        descSprite = createTextShape( description, 1);
         //descSprite.position.set( radius * Math.sin( -angle ), 0, radius * Math.cos( -angle ) );
         descSprite.material.opacity = 1;
-        //descSprite.position.y += 45;
-        descSprite.rotation.y = 90;
+        descSprite.position.y = -45;
+        //descSprite.rotation.y = 0;
         descSprite.position.set(pos["x"],pos["y"],pos["z"] );
-        //descSprite.rotation.y = 90;
-        descSprite.position.z = -5;
-        descSprite.scale.multiplyScalar( 0.1 );
-        
+        descSprite.rotation.y = -60;
+        descSprite.position.z = 10;
+        descSprite.scale.multiplyScalar( 0.5 );
+        descSprite.addEventListener( 'click', function () {
+            //type(['',description]);
+            var worldPosition = new THREE.Vector3();
+            console.log(descSprite.getWorldPosition(worldPosition));
+
+          } );
         return descSprite;
 
       }
 
       const onListReady = ( list ) => {
-        
+        console.log(list)
         const length = list.length;
         const radius = panorama.edgeLength / 2;
-
+        var platdesccheck = false;
         list.map( ( item, index ) => {
           //imageitem = fetch( item['@id'] ).then(getItemContext).catch( console.error );
           imageurl = item.thumbnail_display_urls.large;          
           //coeator = item['dcterms:creator'][0]['@value']
           var descriptionlist = item["dcterms:description"].map(function(e,i,arr){return e["@value"];});
-          var description = descriptionlist.map(function(e,i,arr){return e+"<br>";});
+          //var description = descriptionlist.map(function(e,i,arr){return e+"<br>";});
           
           //var description = descriptionlist.map(function(e,i,arr){return e["@value"];});
-          description = description.toString();
-          var tile = item["dcterms:title"][0]["@value"];
+          description = descriptionlist.toString();
 
-          const infospot = new PANOLENS.Infospot( 1000, imageurl);
-          infospot.addHoverText( tile );
+          var typed = new Typed('#typed',{
+            strings: ["",description],
+            showCursor: false,
+            typeSpeed: 0,
+            backSpeed: 0,
+            backDelay: 500,
+            startDelay: 1000,
+            onBegin: function(self) {
+            },
+            onComplete: function(self) {
+            },
+            preStringTyped: function(pos, self) {
+            },
+            onStringTyped: function(pos, self) {
+            },
+            onLastStringBackspaced: function(self) {
+            },
+            onTypingPaused: function(pos, self) {
+            },
+            onTypingResumed: function(pos, self) {
+            },
+            onReset: function(self) {
+            },
+            onStop: function(pos, self) {
+            },
+            onStart: function(pos, self) {
+            },
+            onDestroy: function(self) {
+            }
+          });
+          
+          var tile = item["dcterms:title"][0]["@value"];
+          //建立提示點
+          const infospot = new PANOLENS.Infospot( 500, imageurl);
+          const new_infospot = new PANOLENS.Infospot( 100, null );
+          new_infospot.addHoverText( description ,-200);
+          infospot.addHoverText( tile ,100);
+          //infospot.childinfospot = new_infospot
+          //infospot.addHoverElement( panel, 200 );
+
+
           level = 0
           const theta = Math.random() * 2 * Math.PI;
           const phi = Math.random() * Math.PI;
-          const angle = index / length * 5 * Math.PI;
+          const angle = Math.PI / 6 * index + Math.PI;
           
           level = level + parseInt(index / 10) * 1500;
           r = 100;
-          const randomPos = new THREE.Vector3(
-            radius * Math.sin( phi ) * Math.cos( theta ),
-            radius * Math.sin( phi ) * Math.sin( theta ),
-            radius * Math.cos( phi )
-          );
+          
           const alignPos = new THREE.Vector3(
-            radius * Math.cos( angle ) ,
-            level ,
-            radius * Math.sin( angle ) 
+            -radius * Math.sin( angle ), 0, radius * Math.cos( angle )
           );
+          new_infospot.position.copy( new THREE.Vector3(
+            -radius * Math.sin( angle ), -400, radius * Math.cos( angle )
+          ));
           infospot.position.copy( alignPos );
           
-          desc = createTitleAndDesc(angle,description,radius,alignPos);
-          infospot.dec = desc;
-          console.log(infospot)
+          //desc = createTitleAndDesc(angle,"Hello!",radius,alignPos);
+          //infospot.dec = desc;
+          //console.log(infospot)
           //依序排列
           infospot.align = () => {
             new TWEEN.Tween( infospot.position )
             .to( alignPos, 1000 )
             .easing( TWEEN.Easing.Exponential.Out )
             .start();
-            console.log("align")
             
           };
-          //隨機排列
-          infospot.randomize = () => {
-            new TWEEN.Tween( infospot.position )
-            .to( randomPos, 1000 )
-            .easing( TWEEN.Easing.Exponential.Out )
-            .start();
-            console.log("randomize")
-          };
           
-          infospot.addEventListener( 'click', function () {
-            //type(['',description]);
+          infospot.addEventListener( 'hoverleave', function () {
+            platdesccheck = false;
+            typed.reset();
+            typed.stop();
+            
           } );
-          panorama.add( desc );
-          panorama.add( infospot );
 
+          infospot.addEventListener( 'click', function () {
+            if(platdesccheck === false){
+              platdesccheck = true;
+              typed.reset();
+              typed.start();
+            }
+            var worldPosition = new THREE.Vector3();
+            console.log(infospot.getWorldPosition(worldPosition));
+
+          } );
+          panorama.add( infospot );
+          panorama.add( new_infospot );
+          //panorama.add( desc );
+          typed.stop();
         });
         viewer.add( panorama );
       };
 
-      const createWidget = () => {
-
-      const onImage = 'url("https://i.imgur.com/k5Mp1Q9.png")';
-      const offImage = 'url("https://i.imgur.com/laX1DBL.png")';
-
-      const widget = { 
-        style: { backgroundImage: onImage },
-        onTap: () => {
-          const enabledGrid = item.style.backgroundImage == onImage;
-          panorama.children.forEach( infospot => infospot[ enabledGrid ? 'align' : 'randomize' ]() );
-          item.style.backgroundImage = enabledGrid ? offImage : onImage;
-        }
-      };
-
-      const item = viewer.appendControlItem( widget );
-
-      };
-
       //建立環景場景
-      const panorama = new PANOLENS.BasicPanorama();
-      //const panorama = new PANOLENS.ImagePanorama( 'https://pchen66.github.io/Panolens/examples/asset/textures/equirectangular/field.jpg' );
+      //const panorama = new PANOLENS.BasicPanorama();
+      const panorama = new PANOLENS.ImagePanorama( 'https://pchen66.github.io/Panolens/examples/asset/textures/equirectangular/field.jpg' );
       const viewer = new PANOLENS.Viewer( { enableReticle: true, renderer: new THREE.WebGLRenderer({antialias: true}),output: 'console' } );
 
       viewer.reticle.setColor( 0x77ffff );
       viewer.add( panorama );
-
       
       var loader = new THREE.FontLoader();
       loader.load( fontUrl, onFontLoaded );
@@ -239,10 +268,9 @@
         //啟動各種功能
         
         font = _font;
-        getRandomImageList( dataUrl );
+        getImageList( dataUrl );
       
       }
-
 
 
     </script>
