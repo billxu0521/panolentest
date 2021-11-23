@@ -62,7 +62,9 @@
 
   <body>
     <script>
-      const dataUrl = "http://omekas.ccstw.nccu.edu.tw/api/items?item_set_id=10520";
+     
+      const dataUrl = "https://billxu0521.github.io/panolentest/asset/data.json?zdksdl";
+      //const dataUrl = "http://omekas.ccstw.nccu.edu.tw/api/items?item_set_id=10520";
       const fontUrl = "https://billxu0521.github.io/panolentest/asset/fonts/helvetiker_regular.typeface.json"
       const getImageList = ( url ) => {
         //開始取圖片資料
@@ -152,9 +154,10 @@
         var platdesccheck = false;
         list.map( ( item, index ) => {
           //imageitem = fetch( item['@id'] ).then(getItemContext).catch( console.error );
-          imageurl = item.thumbnail_display_urls.large;          
+          imageurl = item.url;          
+          var descriptionlist = item.description;
           //coeator = item['dcterms:creator'][0]['@value']
-          var descriptionlist = item["dcterms:description"].map(function(e,i,arr){return e["@value"];});
+          //var descriptionlist = item["dcterms:description"].map(function(e,i,arr){return e["@value"];});
           //var description = descriptionlist.map(function(e,i,arr){return e+"<br>";});
           
           //var description = descriptionlist.map(function(e,i,arr){return e["@value"];});
@@ -191,7 +194,7 @@
             }
           });
           
-          var tile = item["dcterms:title"][0]["@value"];
+          var tile = item.title;
           //建立提示點
           const infospot = new PANOLENS.Infospot( 500, imageurl);
           const new_infospot = new PANOLENS.Infospot( 100, null );
