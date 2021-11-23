@@ -262,6 +262,7 @@
               responsiveVoice.speak(description, 'Chinese Female', {
                     rate: 1.0,
                 });
+                requestPermission();
             }
             var worldPosition = new THREE.Vector3();
             console.log(infospot.getWorldPosition(worldPosition));
@@ -283,8 +284,6 @@
       viewer.reticle.setColor( 0x77ffff );
       viewer.add( panorama );
       requestPermission();
-      const btn = document.getElementById( "request" );
-      btn.addEventListener( "click", requestPermission );
       
       
       var loader = new THREE.FontLoader();
