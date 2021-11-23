@@ -7,16 +7,13 @@
     <div id="dialog">
       <div id="typed"></div>
     </div>
-    <div id="panel">
-      測試區塊
-    </div>
-    
-    </div>
 
     <script src="asset/js/three/three.min.js"></script>
     <script src="asset/js/panolens/panolens.min.js"></script>
     <script src="asset/js/three/loaders/ColladaLoader.js"></script>
     <script src="asset/js/typed.min.js"></script>
+    <script src='https://code.responsivevoice.org/responsivevoice.js'></script>
+
     <style>
       html, body {
         margin: 0;
@@ -153,6 +150,7 @@
         const radius = panorama.edgeLength / 2;
         var platdesccheck = false;
         list.map( ( item, index ) => {
+          console.log(item)
           //imageitem = fetch( item['@id'] ).then(getItemContext).catch( console.error );
           imageurl = item.url;          
           var descriptionlist = item.description;
@@ -161,7 +159,7 @@
           //var description = descriptionlist.map(function(e,i,arr){return e+"<br>";});
           
           //var description = descriptionlist.map(function(e,i,arr){return e["@value"];});
-          description = descriptionlist.toString();
+          var description = descriptionlist.toString();
 
           var typed = new Typed('#typed',{
             strings: ["",description],
@@ -236,7 +234,7 @@
             platdesccheck = false;
             typed.reset();
             typed.stop();
-            
+            responsiveVoice.cancel();
           } );
 
           infospot.addEventListener( 'click', function () {
@@ -244,6 +242,10 @@
               platdesccheck = true;
               typed.reset();
               typed.start();
+              console.log(description);
+              responsiveVoice.speak(description, 'Chinese Female', {
+                    rate: 1.0,
+                });
             }
             var worldPosition = new THREE.Vector3();
             console.log(infospot.getWorldPosition(worldPosition));
@@ -264,6 +266,9 @@
 
       viewer.reticle.setColor( 0x77ffff );
       viewer.add( panorama );
+
+
+      
       
       var loader = new THREE.FontLoader();
       loader.load( fontUrl, onFontLoaded );
@@ -275,6 +280,8 @@
       
       }
 
+      
+      
 
     </script>
     
