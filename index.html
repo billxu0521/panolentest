@@ -266,7 +266,7 @@
               responsiveVoice.speak(description, 'Chinese Female', {
                     rate: 1.0,
                 });
-                requestPermission();
+                
             }
             var worldPosition = new THREE.Vector3();
             console.log(infospot.getWorldPosition(worldPosition));
@@ -294,7 +294,7 @@
       loader.load( fontUrl, onFontLoaded );
       function onFontLoaded ( _font ) {
         //啟動各種功能
-        
+        requestPermission();
         font = _font;
         getImageList( dataUrl );
       
