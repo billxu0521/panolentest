@@ -71,7 +71,20 @@
         .catch( console.error );
         
       };
-
+      
+      function requestPermission() {
+        if (typeof DeviceMotionEvent.requestPermission === 'function') {
+          DeviceMotionEvent.requestPermission()
+            .then(permissionState => {
+              if (permissionState === 'granted') {
+                window.addEventListener('devicemotion', () => {});
+              }
+            })
+            .catch(console.error);
+        } else {
+          // handle devices that don't need permission and those without a gyroscope
+        }
+      }
       //打字效果
       function type ( stringArray  ) {
 
@@ -265,7 +278,7 @@
 
       viewer.reticle.setColor( 0x77ffff );
       viewer.add( panorama );
-
+      requestPermission();
 
       
       
