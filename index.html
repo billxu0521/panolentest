@@ -7,7 +7,7 @@
     <div id="dialog">
       <div id="typed"></div>
     </div>
-    <div id="request">
+    <div class="btn">
       陀螺儀
     </div>
 
@@ -31,7 +31,7 @@
         font-size: 16pt;
       }
 
-      #panel {
+      .btn {
         color: #fff;
         text-shadow: 0px 0px 2px #000;
         font-size: 16pt;
@@ -75,24 +75,29 @@
         
       };
       
-     
-      function requestPermission() {
-        if ( typeof( DeviceMotionEvent ) !== "undefined" && typeof( DeviceMotionEvent.requestPermission ) === "function" ) {
-        // (optional) Do something before API request prompt.
-        DeviceMotionEvent.requestPermission()
-            .then( response => {
-            // (optional) Do something after API prompt dismissed.
-            if ( response == "granted" ) {
-                window.addEventListener( "devicemotion", (e) => {
-                    // do something for 'e' here.
-                })
-            }
-        })
-            .catch( console.error )
-    } else {
-        alert( "DeviceMotionEvent is not defined" );
-    }
-      }
+      var checkDeviceOrientation = document.querySelector(".btn");
+
+      checkDeviceOrientation.addEventListener('click', function() {
+        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+        DeviceOrientationEvent.requestPermission()
+            .then(permissionState => {
+              if (permissionState === 'granted') {
+                // handle data
+              } else {
+          // handle denied
+              }
+            })
+            .catch((err) => {
+                console.log(err)
+            });
+        } else {
+          // han
+          console.log(typeof DeviceOrientationEvent)
+        }
+      })
+
+
+
       //打字效果
       function type ( stringArray  ) {
 
@@ -287,14 +292,12 @@
 
       viewer.reticle.setColor( 0x77ffff );
       viewer.add( panorama );
-      requestPermission();
       
       
       var loader = new THREE.FontLoader();
-      loader.load( fontUrl, onFontLoaded );
+      //loader.load( fontUrl, onFontLoaded );
       function onFontLoaded ( _font ) {
         //啟動各種功能
-        requestPermission();
         font = _font;
         getImageList( dataUrl );
       
