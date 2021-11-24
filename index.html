@@ -69,9 +69,9 @@
         max-height: 500px;
         min-width: 200px;
         min-height: 250px;
-        /*background: #fff;*/
-        color: #000;
         border-radius: 3px;
+        background-color: #000;
+        opacity:0.8;
         overflow: auto;
         -webkit-overflow-scrolling: touch;
       }
@@ -80,11 +80,13 @@
         font-size: 1.5em;
         text-align: center;
         padding: 5px;
+        color:#fff;
       }
 
       .text {
         padding: 0 20px 20px 20px;
         text-overflow: ellipsis;
+        color:#fff;
       }
 
       .ellipsis {
@@ -261,11 +263,9 @@
           var tile = item.title;
           //建立提示點
           const infospot = new PANOLENS.Infospot( 500, imageurl);
-          const new_infospot = new PANOLENS.Infospot( 100, PANOLENS.DataImage.Info );
-          new_infospot.addHoverText( description ,-200);
-          //infospot.addHoverText( tile ,100);
-          //infospot.childinfospot = new_infospot
-          //infospot.addHoverElement( panel, 200 );
+          const text_infospot = new PANOLENS.Infospot( 100, PANOLENS.DataImage.VideoPlay );
+          const stop_infospot = new PANOLENS.Infospot( 100, PANOLENS.DataImage.VideoPause );
+          text_infospot.addHoverText( description ,-300);
 
 
           level = 0
@@ -277,8 +277,12 @@
           const alignPos = new THREE.Vector3(
             -radius * Math.sin( angle ), 0, radius * Math.cos( angle )
           );
-          new_infospot.position.copy( new THREE.Vector3(
-            -radius * Math.sin( angle ), -400, radius * Math.cos( angle )
+          text_infospot.position.copy( new THREE.Vector3(
+            (-radius * Math.sin( angle )) - 60 , -400, radius * Math.cos( angle )
+          ));
+
+          stop_infospot.position.copy( new THREE.Vector3(
+            (-radius * Math.sin( angle )) + 60 , -400, radius * Math.cos( angle )
           ));
           infospot.position.copy( alignPos );
           
@@ -307,15 +311,28 @@
               //typed.reset();
               //typed.start();
               console.log(description);
-              responsiveVoice.speak(description, 'Chinese Female', {
-                    rate: 1.0,
-                });
-                
+              infospot.focus();
+              
             }
             var worldPosition = new THREE.Vector3();
             console.log(infospot.getWorldPosition(worldPosition));
 
           } );
+
+          stop_infospot.addEventListener( 'click', function () {
+            responsiveVoice.cancel();
+          } );
+
+          text_infospot.addEventListener( 'click', function () {
+              //typed.reset();
+              //typed.start();
+              console.log(description);
+              responsiveVoice.speak(description, 'Chinese Female', {
+                    rate: 1.0,
+                });   
+              
+          } );
+          
 
           var infocontainer = document.getElementById( 'desc-container' )
           infocontainer.querySelector(".title").innerHTML = tile;
@@ -324,7 +341,8 @@
 
 
           panorama.add( infospot );
-          panorama.add( new_infospot );
+          panorama.add( text_infospot );
+          panorama.add( stop_infospot );
           //panorama.add( desc );
           typed.stop();
         });
