@@ -7,6 +7,10 @@
     <div id="dialog">
       <div id="typed"></div>
     </div>
+    <div id="desc-container" style="display:none">
+      <div class="title"></div>
+      <div class="text ellipsis "></div>
+    </div>
 
     <script src="asset/js/three/three.min.js"></script>
     <script src="asset/js/panolens/panolens.min.js"></script>
@@ -14,6 +18,12 @@
     <script src="asset/js/typed.min.js"></script>
     <script src="https://code.responsivevoice.org/responsivevoice.js?key=tjZo60Ng"></script>
     <style>
+      #panel {
+        width: 320px;
+        height: 240px;
+        background-color: #fff;
+      }
+
       html, body {
         margin: 0;
         width: 100%;
@@ -52,6 +62,39 @@
         background: #fff;
         -webkit-transition: opacity 0.5s ease;
         transition: opacity 0.5s ease;
+      }
+
+      #desc-container {
+        max-width: 500px;
+        max-height: 500px;
+        min-width: 200px;
+        min-height: 250px;
+        /*background: #fff;*/
+        color: #000;
+        border-radius: 3px;
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .title {
+        font-size: 1.5em;
+        text-align: center;
+        padding: 5px;
+      }
+
+      .text {
+        padding: 0 20px 20px 20px;
+        text-overflow: ellipsis;
+      }
+
+      .ellipsis {
+        overflow:hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        -webkit-box-orient: vertical;
+        white-space: normal;
       }
     </style>
   </head>
@@ -170,7 +213,7 @@
       const onListReady = ( list ) => {
         console.log(list)
         const length = list.length;
-        const radius = panorama.edgeLength / 8 ;
+        const radius = panorama.edgeLength / 5;
         var platdesccheck = false;
         list.map( ( item, index ) => {
           console.log(item)
@@ -218,9 +261,9 @@
           var tile = item.title;
           //建立提示點
           const infospot = new PANOLENS.Infospot( 500, imageurl);
-          const new_infospot = new PANOLENS.Infospot( 100, null );
+          const new_infospot = new PANOLENS.Infospot( 100, PANOLENS.DataImage.Info );
           new_infospot.addHoverText( description ,-200);
-          infospot.addHoverText( tile ,100);
+          //infospot.addHoverText( tile ,100);
           //infospot.childinfospot = new_infospot
           //infospot.addHoverElement( panel, 200 );
 
@@ -253,16 +296,16 @@
           
           infospot.addEventListener( 'hoverleave', function () {
             platdesccheck = false;
-            typed.reset();
-            typed.stop();
+            //typed.reset();
+            //typed.stop();
             responsiveVoice.cancel();
           } );
 
           infospot.addEventListener( 'click', function () {
             if(platdesccheck === false){
               platdesccheck = true;
-              typed.reset();
-              typed.start();
+              //typed.reset();
+              //typed.start();
               console.log(description);
               responsiveVoice.speak(description, 'Chinese Female', {
                     rate: 1.0,
@@ -273,6 +316,13 @@
             console.log(infospot.getWorldPosition(worldPosition));
 
           } );
+
+          var infocontainer = document.getElementById( 'desc-container' )
+          infocontainer.querySelector(".title").innerHTML = tile;
+          infocontainer.querySelector(".text").innerHTML = description;
+          infospot.addHoverElement( infocontainer, 200 );
+
+
           panorama.add( infospot );
           panorama.add( new_infospot );
           //panorama.add( desc );
@@ -314,13 +364,14 @@
 
       //建立環景場景
       //const panorama = new PANOLENS.BasicPanorama();
-      const panorama = new PANOLENS.ImagePanorama( 'https://pchen66.github.io/Panolens/examples/asset/textures/equirectangular/field.jpg' );
+      const panorama = new PANOLENS.ImagePanorama( 'https://billxu0521.github.io/panolentest/asset/image/frick-collection-360-panorama-tour-001.jpeg' );
       const viewer = new PANOLENS.Viewer( 
           { dwellTime:500,
             cameraFov:60,
             viewIndicator:true,
-            horizontalView:true,
-            enableReticle: true, 
+            autoHideInfospot:false,
+            //horizontalView:true,
+            //enableReticle: true, 
             renderer: new THREE.WebGLRenderer({antialias: true}),
             output: 'console' 
           } );
