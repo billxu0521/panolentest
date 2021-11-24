@@ -7,9 +7,6 @@
     <div id="dialog">
       <div id="typed"></div>
     </div>
-    <div class="btn">
-      啟用陀螺儀
-    </div>
 
     <script src="asset/js/three/three.min.js"></script>
     <script src="asset/js/panolens/panolens.min.js"></script>
@@ -70,13 +67,13 @@
       return fetch( url )
         .then( response => response.json() )
         .then( onListReady )
-        //.then( createWidget )
+        .then( createWidget )
         .catch( console.error );
         
       };
       
       var checkDeviceOrientation = document.querySelector(".btn");
-
+      /*
       checkDeviceOrientation.addEventListener('click', function() {
         if (typeof DeviceOrientationEvent.requestPermission === 'function') {
         DeviceOrientationEvent.requestPermission()
@@ -95,6 +92,7 @@
           console.log(typeof DeviceOrientationEvent)
         }
       })
+      */
 
 
 
@@ -172,7 +170,7 @@
       const onListReady = ( list ) => {
         console.log(list)
         const length = list.length;
-        const radius = panorama.edgeLength / 2;
+        const radius = panorama.edgeLength / 8 ;
         var platdesccheck = false;
         list.map( ( item, index ) => {
           console.log(item)
@@ -228,8 +226,6 @@
 
 
           level = 0
-          const theta = Math.random() * 2 * Math.PI;
-          const phi = Math.random() * Math.PI;
           const angle = Math.PI / 6 * index + Math.PI;
           
           level = level + parseInt(index / 10) * 1500;
@@ -284,11 +280,50 @@
         });
         viewer.add( panorama );
       };
+      //建立詢問按鈕
+      const createWidget = () => {
+
+        const onImage = 'url("https://i.imgur.com/k5Mp1Q9.png")';
+        const offImage = 'url("https://i.imgur.com/laX1DBL.png")';
+
+        const widget = { 
+          style: { backgroundImage: onImage },
+          onTap: () => {
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+              DeviceOrientationEvent.requestPermission()
+                  .then(permissionState => {
+                    if (permissionState === 'granted') {
+                      // handle data
+                    } else {
+                // handle denied
+                    }
+                  })
+                  .catch((err) => {
+                      console.log(err)
+                  });
+            } else {
+              // han
+              console.log(typeof DeviceOrientationEvent)
+            }
+          }
+        };
+
+        const item = viewer.appendControlItem( widget );
+
+      };
 
       //建立環景場景
       //const panorama = new PANOLENS.BasicPanorama();
       const panorama = new PANOLENS.ImagePanorama( 'https://pchen66.github.io/Panolens/examples/asset/textures/equirectangular/field.jpg' );
-      const viewer = new PANOLENS.Viewer( { enableReticle: true, renderer: new THREE.WebGLRenderer({antialias: true}),output: 'console' } );
+      const viewer = new PANOLENS.Viewer( 
+          { dwellTime:500,
+            cameraFov:60,
+            viewIndicator:true,
+            horizontalView:true,
+            enableReticle: true, 
+            renderer: new THREE.WebGLRenderer({antialias: true}),
+            output: 'console' 
+          } );
 
       viewer.reticle.setColor( 0x77ffff );
       viewer.add( panorama );
@@ -301,6 +336,8 @@
         font = _font;
         getImageList( dataUrl );
       
+
+
       }
 
       
